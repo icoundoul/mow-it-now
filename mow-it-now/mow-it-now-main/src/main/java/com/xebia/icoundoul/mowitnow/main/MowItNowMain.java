@@ -1,5 +1,6 @@
 package com.xebia.icoundoul.mowitnow.main;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -28,33 +29,37 @@ public class MowItNowMain {
 	@Inject
 	private IInstructionService instructionsScannerService;
 
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws Exception {
 
 		ApplicationContext context = null;
+		String filename = null;
 
 		try {
 			context = new ClassPathXmlApplicationContext("classpath:spring-context.xml");
 
-			MowItNowMain mowFromFileMain = context.getBean(MowItNowMain.class);
-			String filename = mowFromFileMain.getFileName();
-			InputStream instructionsFile = new FileInputStream(filename);
+			MowItNowMain main = context.getBean(MowItNowMain.class);
+			filename = main.getFileName();
+			ClassLoader classLoader = main.getClass().getClassLoader();
+			File file = new File(classLoader.getResource(filename).getFile());
+			InputStream instructionsFile = new FileInputStream(file);
 
-			// Process instrucitions
-			mowFromFileMain.processStream(instructionsFile, System.out);
+			// Process instructions
+			main.processInstructions(instructionsFile, System.out);
 
+		} catch (FileNotFoundException e) {
+			throw new Exception("\n\nLe fichier d'insctructions " + filename + " n'exste pas. Veuillez vérifier son emplacement\n", e);
 		} catch (Exception e) {
-
-			e.printStackTrace();
+			throw e;
 		} finally {
 			((ConfigurableApplicationContext) context).close();
 		}
 	}
 
-	private String getFileName() {
+	private String getFileName() throws Exception {
 		return mowItNowPropertiesUtils.getValueByKey(MowItNowConfig.INSTRUCTION_FILE_NAME);
 	}
 
-	private void processStream(InputStream in, PrintStream out) {
+	private void processInstructions(InputStream in, PrintStream out) {
 		instructionsScannerService.procesInstructions(in, out);
 
 	}

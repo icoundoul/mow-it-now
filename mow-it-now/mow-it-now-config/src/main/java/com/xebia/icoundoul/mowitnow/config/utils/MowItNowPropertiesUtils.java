@@ -12,8 +12,12 @@ public class MowItNowPropertiesUtils {
 	@Resource(name = "mow-it-now-properties")
 	private Properties mowItNowProperties;
 
-	public String getValueByKey(String key) {
+	public String getValueByKey(String key) throws Exception {
 		String value = mowItNowProperties.getProperty(key);
+		if (value == null) {
+			throw new Exception("La clé " + key + " doit être déclarée dans le fichier mow-it-now.properties");
+		}
+
 		return value;
 	}
 }
